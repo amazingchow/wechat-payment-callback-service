@@ -1,0 +1,12 @@
+{
+    "deployment_env": "dev",
+    "service_name": "wechat-payment-callback-service",
+    "service_group_name": "my-group",
+    "service_grpc_endpoint": "0.0.0.0:16887",
+    "enable_http_gateway": true,
+    "service_http_endpoint": "0.0.0.0:16888",
+    "service_metrics_endpoint": "0.0.0.0:16889",
+	"log_level": "debug",
+    "log_printer": "console",
+    "enable_reflection": true
+}

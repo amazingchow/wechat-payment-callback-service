@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "github.com/amazingchow/wechat-payment-callback-service/internal/proto_gens";
+
+package wechat_payment_callback_service;
+
+message PingRequest {}
+
+message PongResponse {}
+
+/* clang-format off */
+service WechatPaymentCallbackService {
+  rpc Ping(PingRequest) returns (PongResponse) {}
+}
+/* clang-format on */

@@ -1,0 +1,31 @@
+version: "3.7"
+services:
+  infra-wechat-payment-callback-service:
+    image: infra-wechat-payment-callback-service:${IMAGE_VERSION}
+    container_name: infra-wechat-payment-callback-service
+    command: /app/wechat-payment-callback-service -conf /app/config/wechat-payment-callback-service.json
+    ports:
+      - 16887:16887
+      - 16888:16888
+    restart: always
+    env_file:
+      - ./.env.local
+      - ./.env.secret
+      - ./.env.shared
+    environment:
+      TZ: Asia/Shanghai
+      DEPLOY_ENV: prod
+      LOG_LEVEL: debug
+      LOG_PRINTER: disk
+      LOG_PRINTER_FILENAME: /app/logs/infra-wechat-payment-callback-service.log
+    volumes:
+      - ~/.infra-config/wechat-payment-callback-service:/app/config
+      - ./.logs:/app/logs
+      - ./.persistent:/app/persistent
+      - ./.locks:/app/locks
+      - ./.shares:/app/shares
+    # healthcheck:
+    #   test: ["CMD-SHELL", "grpcurl ... || exit 1"]
+    #   interval: 5s
+    #   timeout: 5s
+    #   retries: 30
