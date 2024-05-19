@@ -3,10 +3,38 @@
     "service_name": "wechat-payment-callback-service",
     "service_group_name": "my-group",
     "service_grpc_endpoint": "0.0.0.0:16887",
-    "enable_http_gateway": true,
     "service_http_endpoint": "0.0.0.0:16888",
     "service_metrics_endpoint": "0.0.0.0:16889",
 	"log_level": "debug",
     "log_printer": "console",
-    "enable_reflection": true
+    "enable_reflection": true,
+    "service_internal_config": {
+        "merchant_id": "MERCHANT_ID",
+        "merchant_cert_serial_no": "MERCHANT_CERT_SERIAL_NO",
+        "merchant_api_v3_key": "MERCHANT_API_V3_KEY",
+        "merchant_api_v3_secret_cert_path": "MERCHANT_API_V3_SECRET_CERT_PATH",
+        "supported_app_list": [
+            {
+                "app_id": "WX_APP_ID",
+                "app_secret": "WX_APP_SECRET"
+            }
+        ],
+        "payment_callback_notify_url": "PAYMENT_CALLBACK_NOTIFY_URL",
+        "payment_expire_time_in_minute": 15,
+        "storage": {
+            "endpoint": "localhost:27017",
+            "root_usr": "root",
+            "root_pwd": "STORAGE_PWD",
+            "enable_ssl": false,
+            "db": "wechat_pay_backend_service",
+            "conn_timeout": 5
+        },
+        "cache": {
+            "endpoint": "localhost:6379",
+            "pwd": "CACHE_PWD",
+            "enable_ssl": false,
+            "db": 0,
+            "conn_timeout": 5
+        }
+    }
 }

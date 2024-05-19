@@ -25,3 +25,4 @@ vendor/
 .shares
 unit_test_coverage.txt
 *.log
+/scripts/fixtures/*

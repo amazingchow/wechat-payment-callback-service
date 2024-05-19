@@ -8,8 +8,83 @@ message PingRequest {}
 
 message PongResponse {}
 
+message MakeNewPlatformTradeIdRequest {
+  /* 由微信官方给定的应用ID */
+  string app_id = 1;
+  /* 由微信官方给定的用户唯一标识 */
+  string payer_uid = 2;
+}
+
+message MakeNewPlatformTradeIdResponse {
+  /* 由系统生成的平台订单交易ID */
+  string trade_id = 1;
+}
+
+message MakeNewWxPrepayOrderRequest {
+  /* 由微信官方给定的应用ID */
+  string app_id = 1;
+  /* 由微信官方给定的用户唯一标识 */
+  string payer_uid = 2;
+  /* 由系统生成的平台订单交易ID */
+  string trade_id = 3;
+  /* 商品描述 */
+  string item_description = 4;
+  /* 订单总额, 单位（分） */
+  int64 item_amount_total = 5;
+}
+
+message WxRequestPaymentParams {
+  /* 当前的时间, 示例值: 1414561699 */
+  int64 timestamp = 1;
+  /* 随机字符串, 不长于32位, 示例值: 5K8264ILTKCH16CQ2502SI8ZNMTM67VS */
+  string nonce = 2;
+  /* 小程序下单接口返回的prepay_id参数值 */
+  string package = 3;
+  /* 签名类型, 默认为RSA, 仅支持RSA */
+  string sign_type = 4;
+  /* 签名, 使用字段appId、timeStamp、nonceStr、package计算得出的签名值 */
+  string pay_sign = 5;
+}
+
+message MakeNewWxPrepayOrderResponse { WxRequestPaymentParams params = 1; }
+
+message QueryWxPaymentStatusRequest {
+  /* 由系统生成的平台订单交易ID */
+  string trade_id = 1;
+}
+
+message QueryWxPaymentStatusResponse {
+  /* 由微信官方给定的应用ID */
+  string app_id = 1;
+  /* 由系统生成的平台订单交易ID */
+  string trade_id = 2;
+  /* 由微信官方给定的支付订单号 */
+  string trx_id = 3;
+  /* 交易类型 */
+  string trade_type = 4;
+  /* 交易状态 */
+  string trade_state = 5;
+  /* 支付完成时间 */
+  string success_time = 6;
+}
+
+message CloseWxPrepayOrderRequest {
+  /* 由系统生成的平台订单交易ID */
+  string trade_id = 1;
+}
+
+message CloseWxPrepayOrderResponse {}
+
 /* clang-format off */
 service WechatPaymentCallbackService {
   rpc Ping(PingRequest) returns (PongResponse) {}
+  /* 生成平台订单交易ID */
+  rpc MakeNewPlatformTradeId(MakeNewPlatformTradeIdRequest) returns (MakeNewPlatformTradeIdResponse) {}
+  /* 创建平台订单和微信预支付订单 */
+  rpc MakeNewWxPrepayOrder(MakeNewWxPrepayOrderRequest) returns (MakeNewWxPrepayOrderResponse) {}
+  /* 查询微信支付状态 */
+  rpc QueryWxPaymentStatus(QueryWxPaymentStatusRequest) returns (QueryWxPaymentStatusResponse) {}
+  /* 关闭微信预支付订单 */
+  rpc CloseWxPrepayOrder(CloseWxPrepayOrderRequest) returns (CloseWxPrepayOrderResponse) {}
 }
 /* clang-format on */

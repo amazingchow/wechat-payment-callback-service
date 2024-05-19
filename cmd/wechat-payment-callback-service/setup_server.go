@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -15,7 +16,8 @@ import (
 	"github.com/amazingchow/wechat-payment-callback-service/internal/common/logger"
 	"github.com/amazingchow/wechat-payment-callback-service/internal/proto_gens"
 	"github.com/amazingchow/wechat-payment-callback-service/internal/service"
-	"github.com/amazingchow/wechat-payment-callback-service/internal/service/interceptor"
+	middlewares "github.com/amazingchow/wechat-payment-callback-service/internal/service/gin_middlewares"
+	interceptors "github.com/amazingchow/wechat-payment-callback-service/internal/service/grpc_interceptors"
 )
 
 const (
@@ -48,7 +50,7 @@ func setupGrpcService(_ context.Context, wg *sync.WaitGroup, stopCh chan struct{
 			Timeout: _DefaultSrvKeepaliveTimeout,
 		}),
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
-			interceptor.RecoverPanicAndReportLatencyUnaryInterceptor,
+			interceptors.RecoverPanicAndReportLatencyUnaryInterceptor,
 		)),
 	}
 	// Create a gRPC server.
@@ -63,14 +65,45 @@ func setupGrpcService(_ context.Context, wg *sync.WaitGroup, stopCh chan struct{
 		// Listen on the given address and port.
 		if err := grpcServer.Serve(l); err != nil {
 			logger.GetGlobalLogger().
-				WithError(err).Error("Failed to serve WechatPaymentCallbackService.")
+				WithError(err).Error("Failed to serve grpc service.")
 		}
 	}()
-	logger.GetGlobalLogger().Infof("Server started, listening on %s.",
+	logger.GetGlobalLogger().Infof("gRPC Server started, listening on %s.",
 		config.GetConfig().ServiceGrpcEndpoint)
 	logger.GetGlobalLogger().Infof("Started WechatPaymentCallbackService Server 🤘.")
 
 	<-stopCh
 	grpcServer.GracefulStop()
-	logger.GetGlobalLogger().Warning("Stopped WechatPaymentCallbackService Server.")
+	logger.GetGlobalLogger().Warning("Stopped grpc service.")
+}
+
+func setupHttpService(ctx context.Context, wg *sync.WaitGroup, stopCh chan struct{}) {
+	defer wg.Done()
+
+	// Create a gin router.
+	router := gin.Default()
+	if config.GetConfig().DeploymentEnv == "dev" {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
+	// Use the middlewares.
+	router.Use(middlewares.RecoverPanicAndReportLatencyMiddleware())
+	// Register the routes.
+	router.HEAD("/", service.GetWechatPaymentCallbackServiceImpl().HomeHandler)
+	router.GET("/", service.GetWechatPaymentCallbackServiceImpl().HomeHandler)
+	router.POST("/notify", service.GetWechatPaymentCallbackServiceImpl().NotifyHandler)
+
+	go func() {
+		// Listen on the given address and port.
+		if err := router.Run(config.GetConfig().ServiceHttpEndpoint); err != nil {
+			logger.GetGlobalLogger().
+				WithError(err).Error("Failed to serve http service.")
+		}
+	}()
+	logger.GetGlobalLogger().Infof("Http Server started, listening on %s.",
+		config.GetConfig().ServiceHttpEndpoint)
+
+	<-stopCh
+	logger.GetGlobalLogger().Warning("Stopped http service.")
 }

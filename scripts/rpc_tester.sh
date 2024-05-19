@@ -19,6 +19,15 @@ function test_rpc_methods
 }
 EOM
 
+    grpcurl \
+        -rpc-header x-request-id:73338239da584998aca91639651334fa -d @ -plaintext \
+        localhost:16887 wechat_payment_callback_service.WechatPaymentCallbackService/MakeNewPlatformTradeId << EOM
+{
+    "app_id": "",
+    "payer_uid": ""
+}
+EOM
+
 }
 
 function run

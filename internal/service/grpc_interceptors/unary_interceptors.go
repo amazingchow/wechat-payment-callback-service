@@ -1,4 +1,4 @@
-package interceptor
+package interceptors
 
 import (
 	"context"
@@ -35,6 +35,13 @@ func RecoverPanicAndReportLatencyUnaryInterceptor(
 
 	st := time.Now()
 	defer func() {
+		ed := time.Now()
+		logger.GetGlobalLogger().
+			WithField(common.LoggerKeyTraceId, tid).
+			WithField(common.LoggerKeySpanId, sid).
+			WithField("latency", ed.Sub(st).Milliseconds()).
+			Debug("request latency")
+
 		if e := recover(); e != nil {
 			logger.GetGlobalLogger().
 				WithField(common.LoggerKeyTraceId, tid).
@@ -44,13 +51,6 @@ func RecoverPanicAndReportLatencyUnaryInterceptor(
 				Error("Recover from internal server panic.")
 			err = status.Error(codes.Internal, "Recover from internal server panic.")
 		}
-
-		ed := time.Now()
-		logger.GetGlobalLogger().
-			WithField(common.LoggerKeyTraceId, tid).
-			WithField(common.LoggerKeySpanId, sid).
-			WithField("latency", ed.Sub(st).Milliseconds()).
-			Debug("request latency")
 	}()
 
 	return rpcHandler(ctx, req)
